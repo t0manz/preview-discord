@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Previewer de Perfil do Discord</title>
+<link href="https://fonts.googleapis.com/css2?family=Karla:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="css/favicon.svg">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/cropper.css">
+<link rel="stylesheet" href="css/discord.css">
+</head>
+<body>
+
+<div class="layout">
+
+  <div class="editor-area">
+    <div class="ed-card">
+      <div class="ed-head">
+        <span class="section-label">Avatar</span>
+      </div>
+      <div class="ed-body">
+        <div class="upload-zone" id="av-zone"
+             onclick="document.getElementById('av-input').click()"
+             ondragover="event.preventDefault()" ondrop="dropImg(event,'av')">
+          <strong>Clica, arrasta ou cola</strong>
+          <p>PNG, JPG, WebP</p>
+        </div>
+        <input type="file" id="av-input" accept="image/*" style="display:none" onchange="loadImg(event,'av')">
+        <div id="av-editor" style="display:none;flex-direction:column;gap:8px;">
+          <div class="cropper-outer">
+            <div class="cropper-wrap" id="av-wrap">
+              <img id="av-img" draggable="false">
+              <canvas id="av-canvas" style="position:absolute;inset:0;pointer-events:none;"></canvas>
+              <div id="av-box" class="crop-box">
+                <div class="crop-box-border crop-box-circle"></div>
+                <div class="handle nw" data-h="nw"></div>
+                <div class="handle ne" data-h="ne"></div>
+                <div class="handle sw" data-h="sw"></div>
+                <div class="handle se" data-h="se"></div>
+              </div>
+            </div>
+            <div class="prev-col">
+              <span class="prev-lbl">160px</span>
+              <img id="av-p160" class="live-circle" style="width:160px;height:160px;object-fit:cover;">
+              <span class="prev-lbl">80px</span>
+              <img id="av-p80" class="live-circle" style="width:80px;height:80px;object-fit:cover;">
+              <span class="prev-lbl">48px</span>
+              <img id="av-p48" class="live-circle" style="width:48px;height:48px;object-fit:cover;">
+              <span class="prev-lbl">32px</span>
+              <img id="av-p32" class="live-circle" style="width:32px;height:32px;object-fit:cover;">
+            </div>
+          </div>
+          <p class="hint">WASD ou setas para mover com precisão.</p>
+          <div class="rotation-row">
+            <label>↻</label>
+            <input type="range" min="-180" max="180" value="0" step="0.5" id="av-rotation" oninput="setRotation('av',this.value)">
+            <span class="rotation-val" id="av-rot-val">0°</span>
+            <button class="btn btn-ghost" style="padding:3px 8px;font-size:11px;" onclick="resetRotation('av')">reset</button>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-ghost" onclick="resetEditor('av')">Limpar</button>
+            <button class="btn btn-save" onclick="downloadCrop('av')">⬇ Guardar foto</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ed-card bn-collapsed" id="bn-card">
+      <div class="ed-head">
+        <span class="section-label">Banner</span>
+        <span class="badge-nitro">Nitro</span>
+        <button class="bn-toggle-btn" onclick="toggleBanner()">
+          <span class="bn-toggle-arrow">▾</span> <span id="bn-toggle-lbl">Mostrar</span>
+        </button>
+      </div>
+      <div class="ed-body">
+        <div class="upload-zone" id="bn-zone"
+             onclick="document.getElementById('bn-input').click()"
+             ondragover="event.preventDefault()" ondrop="dropImg(event,'bn')">
+          <strong>Clica ou arrasta o banner</strong>
+          <p>PNG, JPG, WebP</p>
+        </div>
+        <input type="file" id="bn-input" accept="image/*" style="display:none" onchange="loadImg(event,'bn')">
+        <div id="bn-editor" style="display:none;flex-direction:column;gap:8px;">
+          <div class="cropper-outer">
+            <div class="cropper-wrap" id="bn-wrap">
+              <img id="bn-img" draggable="false">
+              <canvas id="bn-canvas" style="position:absolute;inset:0;pointer-events:none;"></canvas>
+              <div id="bn-box" class="crop-box">
+                <div class="crop-box-border"></div>
+                <div class="handle nw" data-h="nw"></div>
+                <div class="handle ne" data-h="ne"></div>
+                <div class="handle sw" data-h="sw"></div>
+                <div class="handle se" data-h="se"></div>
+              </div>
+            </div>
+          </div>
+          <p class="hint">Arrasta e redimensiona para escolher a área · WASD ou ↑↓←→ para mover com precisão.</p>
+          <div class="btn-row">
+            <button class="btn btn-ghost" onclick="resetEditor('bn')">Limpar</button>
+            <button class="btn btn-save" onclick="downloadCrop('bn')">⬇ Guardar banner</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="sb-title">Preview ao vivo</div>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px;">
+      <div class="info-row">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">
+          <div class="info-field">
+            <label>Nome</label>
+            <input type="text" id="info-name" oninput="updateInfo()" placeholder="Nome">
+          </div>
+          <div class="info-field">
+            <label>Username</label>
+            <input type="text" id="info-handle" oninput="updateInfo()" placeholder="username">
+          </div>
+        </div>
+        <div class="info-field">
+          <label>Pronomes, etc.</label>
+          <input type="text" id="info-pronouns" value="" oninput="updateInfo()" placeholder="they/them, ou qualquer coisa...">
+        </div>
+        <div class="info-field">
+          <label>Bio</label>
+          <textarea id="info-bio" oninput="updateInfo()" placeholder="Aqui ficaria uma bio..." style="min-height:44px;"></textarea>
+        </div>
+        <div class="info-field" style="flex-direction:column;gap:6px;">
+          <label style="display:flex;align-items:center;gap:5px;">Cor do perfil <span class="badge-nitro">Nitro</span></label>
+          <div id="color-palette-row" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-height:28px;"></div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:11px;color:var(--text3);flex-shrink:0;">#</span>
+            <input type="text" class="color-hex-input" id="color-hex" value="23262a" maxlength="6" oninput="onColorHexChange(this.value)" placeholder="23262a" style="width:80px;letter-spacing:0.06em;font-family:monospace;">
+            <div id="color-hex-preview" style="width:22px;height:22px;border-radius:5px;border:1px solid var(--border2);background:#23262a;flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;" title="Abre color picker" onclick="document.getElementById('color-native-picker').click()">
+              <input type="color" id="color-native-picker" value="#23262a" style="opacity:0;position:absolute;inset:0;width:100%;height:100%;cursor:pointer;border:none;padding:0;" oninput="onColorPickerChange(this.value)" onchange="onColorPickerChange(this.value)">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sb-label">Perfil</div>
+      <div class="dc-card">
+        <div id="sb-banner-area">
+          <div id="sb-color-stripe" class="dc-color-stripe" style="height:120px;background:#23262a;border-radius:8px 8px 0 0;"></div>
+          <div class="dc-banner" id="sb-banner-bg" style="display:none;"><img id="sb-banner-img" style="display:none;width:100%;height:100%;object-fit:cover;"></div>
+        </div>
+        <div class="dc-card-body-bg" id="sb-card-body">
+          <div class="dc-avatar-row">
+            <div class="dc-avatar">
+              <div class="dc-avatar-ph" id="sb-av-ph" style="background:#5865F2;">:)</div>
+              <img id="sb-av-img" style="display:none;width:100%;height:100%;object-fit:cover;">
+            </div>
+            <div class="dc-avatar-wrap">
+              <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <mask id="mask-sb">
+                    <rect fill="white" x="0" y="0" width="100" height="100"/>
+                    <circle fill="black" cx="82" cy="82" r="10"/>
+                  </mask>
+                </defs>
+                <circle id="sb-status-ring" fill="#232428" cx="82" cy="82" r="15" mask="url(#mask-sb)"/>
+                <circle fill="#23a55a" cx="82" cy="82" r="10"/>
+              </svg>
+            </div>
+          </div>
+          <div class="dc-body">
+            <div class="dc-username" id="sb-name">nome</div>
+            <div class="dc-handle-row">
+              <span id="sb-handle">username</span>
+              <span id="sb-pronouns-sep" style="display:none;">·</span>
+              <span id="sb-pronouns" class="dc-pronouns"></span>
+            </div>
+            <hr class="dc-divider">
+            <div class="dc-lbl">Bio</div>
+            <div class="dc-txt" id="sb-bio" style="color:#87898f;font-style:italic;">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sb-label">Mensagens</div>
+      <div class="dc-msgs">
+        <div class="msg-row">
+          <div class="msg-av"><div class="msg-av-ph" style="background:#ed4245;">🦁</div></div>
+          <div class="msg-content"><span class="msg-name" style="color:#ed4245;">amigo1</span><span class="msg-time" id="msg-time-1">Hoje às 15:41</span><div class="msg-txt">oiii</div></div>
+        </div>
+        <div class="msg-row">
+          <div class="msg-av"><div class="msg-av-ph" id="sb-av-ph-msg" style="background:#5865F2;">:)</div><img id="sb-av-img-msg" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>
+          <div class="msg-content"><span class="msg-name" id="sb-msg-name">nome</span><span class="msg-time" id="msg-time-2">Hoje às 15:42</span><div class="msg-txt">olá! isto é uma mensagem</div></div>
+        </div>
+        <div class="msg-row" style="margin-bottom:0;">
+          <div class="msg-av" style="background:#5865F2;">😼</div>
+          <div class="msg-content"><span class="msg-name" style="color:#5865F2;">amigo2</span><span class="msg-time" id="msg-time-3"> Hoje às 15:43</span><div class="msg-txt">type shit</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sb-label">Call</div>
+      <div class="dc-vc-wrap">
+        <div class="vc-tiles-area">
+          <div class="vc-main-tile" id="sb-vc-main-tile">
+            <div class="vc-main-tile-bg" id="sb-vc-bg"></div>
+            <div class="vc-main-av">
+              <div class="vc-main-av-ph" id="sb-av-ph-vc" style="background:#5865F2;">:)</div>
+              <img id="sb-av-img-vc" style="display:none;width:100%;height:100%;object-fit:cover;">
+            </div>
+            <div class="vc-main-name-bar">
+              <span class="vc-main-name" id="sb-vc-name">nome</span>
+            </div>
+          </div>
+          <div class="vc-side-tiles">
+            <div class="vc-side-tile">
+              <div class="vc-side-av">🦁</div>
+              <span class="vc-side-name">amigo1</span>
+            </div>
+            <div class="vc-side-tile">
+              <div class="vc-side-av">😼</div>
+              <span class="vc-side-name">amigo2</span>
+            </div>
+          </div>
+        </div>
+        <div class="vc-bottom-bar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;" stroke="#23a55a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12.55a11 11 0 0114.08 0"/>
+            <path d="M1.42 9a16 16 0 0121.16 0"/>
+            <path d="M8.53 16.11a6 6 0 016.95 0"/>
+            <circle cx="12" cy="20" r="1" fill="#23a55a" stroke="none"/>
+          </svg>
+          <div class="vc-bottom-info">
+            <div class="vc-bottom-server" style="color:#23a55a;">Voice Connected</div>
+            <div class="vc-bottom-channel" id="sb-vc-channel-label">canal de voz / servidor</div>
+          </div>
+          <button class="vc-btn" title="Microfone">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+              <path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/>
+            </svg>
+          </button>
+          <button class="vc-btn" title="Headphones">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12a9 9 0 0118 0"/>
+              <rect x="3" y="13" width="4" height="6" rx="2"/>
+              <rect x="17" y="13" width="4" height="6" rx="2"/>
+            </svg>
+          </button>
+          <button class="vc-btn danger" title="Desligar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="5" y1="5" x2="19" y2="19"/>
+              <line x1="19" y1="5" x2="5" y2="19"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <p style="font-size:9px;color:var(--text3);font-style:italic;margin-top:auto;padding-top:6px;">Atualiza ao vivo enquanto se ajusta o crop.</p>
+  </div>
+
+</div>
+
+<script src="js/state.js"></script>
+<script src="js/color.js"></script>
+<script src="js/cropper.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+.mobile-tabs { display: none; }
+
+@media (max-width: 767px),
+       (max-height: 500px) and (orientation: landscape) {
+
+  html, body {
+    height: auto;
+    overflow: auto;
+    overflow-x: hidden;
+  }
+
+  .layout {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .mobile-tabs {
+    display: flex;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .mobile-tab-btn {
+    flex: 1;
+    padding: 11px 0;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text3);
+    font-family: 'Karla', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .mobile-tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .editor-area,
+  .sidebar {
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: visible;
+    height: auto;
+  }
+
+  .editor-area {
+    padding: 10px;
+    gap: 10px;
+    border-right: none;
+  }
+
+  .sidebar {
+    border-left: none;
+    border-top: 1px solid var(--border);
+    padding: 12px 10px;
+  }
+
+  .editor-area.tab-hidden,
+  .sidebar.tab-hidden {
+    display: none;
+  }
+
+  .ed-body {
+    overflow-x: hidden;
+  }
+
+  .cropper-outer {
+    flex-direction: column !important;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .cropper-wrap {
+    overflow: hidden !important;
+  }
+
+  #av-wrap,
+  #bn-wrap {
+    max-width: calc(100vw - 44px) !important;
+    overflow: hidden !important;
+  }
+
+  #av-canvas,
+  #bn-canvas {
+    max-width: 100%;
+  }
+
+  .prev-col {
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .prev-col .prev-lbl { display: none; }
+
+  #av-p160 {
+    width: 80px !important;
+    height: 80px !important;
+  }
+
+  .rotation-row { flex-wrap: wrap; gap: 6px; }
+  .rotation-row input[type=range] { min-width: 120px; }
+
+  .hint { display: none; }
+  .dc-card { min-width: 0; }
+  .dc-vc-wrap { min-height: 220px; }
+  .vc-tiles-area { min-height: 170px; }
+}
+
+@media (max-width: 400px) {
+  .info-row > div[style*="grid"] {
+    grid-template-columns: 1fr !important;
+  }
+}

@@ -1,0 +1,16 @@
+.cropper-outer { display: flex; gap: 9px; align-items: flex-start; }
+.cropper-wrap { position: relative; display: inline-block; overflow: hidden; border-radius: 6px; user-select: none; touch-action: none; background: #111; flex-shrink: 0; }
+.cropper-wrap img { display: block; transform-origin: center center; }
+.crop-box { position: absolute; cursor: move; }
+.crop-box-border { position: absolute; inset: 0; border: 1.5px solid rgba(255,255,255,0.85); pointer-events: none; }
+.crop-box-circle { border-radius: 50%; }
+
+.handle { position: absolute; width: 10px; height: 10px; background: #fff; border-radius: 2px; z-index: 10; box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+.handle.nw { top:-5px; left:-5px; cursor:nw-resize; }
+.handle.ne { top:-5px; right:-5px; cursor:ne-resize; }
+.handle.sw { bottom:-5px; left:-5px; cursor:sw-resize; }
+.handle.se { bottom:-5px; right:-5px; cursor:se-resize; }
+
+.prev-col { display: flex; flex-direction: column; gap: 6px; align-items: center; flex-shrink: 0; width: 160px; }
+.prev-lbl { font-size: 10px; color: var(--text3); }
+.live-circle { border-radius: 50%; background: #36393f; flex-shrink: 0; display: block; }
